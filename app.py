@@ -1,11 +1,14 @@
 from flask import Flask, render_template, request, jsonify
 import os
-import joblib   # ✅ USE JOBLIB INSTEAD OF PICKLE
+import joblib
 import numpy as np
 import pandas as pd
 
 app = Flask(__name__, template_folder='templates')
-app.secret_key = os.environ.get('SECRET_KEY', 'fraud-detection-dev-key-change-in-production')
+app.secret_key = os.environ.get(
+    'SECRET_KEY',
+    'fraud-detection-dev-key-change-in-production'
+)
 
 # ------------------ LOAD MODEL ------------------
 
@@ -26,14 +29,14 @@ model = None
 for p in MODEL_PATHS:
     try:
         if p and os.path.exists(p):
-            model = joblib.load(p)   # ✅ LOAD WITH JOBLIB
-            print(f"Model loaded from: {p}")
+            model = joblib.load(p)
+            print(f"✅ Model loaded from: {p}")
             break
     except Exception as e:
-        print(f"Failed to load model from {p}: {e}")
+        print(f"❌ Failed to load model from {p}: {e}")
 
 if model is None:
-    print("Model not loaded. Place 'payments.pkl' correctly.")
+    print("⚠️ Model not loaded. Place 'payments.pkl' correctly.")
 
 # ------------------ PARSE INPUT ------------------
 
@@ -156,7 +159,7 @@ def predict():
 
         if hasattr(model, "predict_proba"):
             proba = model.predict_proba(X_model)[0][1]
-            pred = 1 if proba > 0.3 else 0   # threshold
+            pred = 1 if proba > 0.3 else 0
         else:
             pred = model.predict(X_model)[0]
 
@@ -186,5 +189,8 @@ def submit_page():
     return render_template('submit.html')
 
 
+# ------------------ MAIN ------------------
+
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port, debug=False)
